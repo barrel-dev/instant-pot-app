@@ -21,20 +21,27 @@ const allowCors = (fn: (req: VercelRequest, res: VercelResponse) => Promise<Verc
   }
 
 const handler = async (req: VercelRequest, res: VercelResponse) => {
-  const { subscriptionGroup, subscriptionGroupId, email } = req.body
+  const { listId, email } = req.body
 
-  if (!subscriptionGroup || !subscriptionGroupId || !email) {
-    return res.json({ message: 'Missing subscriptionGroup, subscriptionGroupId or email', status: 400 })
+  if (!listId || !email) {
+    return res.json({ message: 'Missing listId or email', status: 400 })
   }
 
   const ITERABLE_API_KEY = process.env.ITERABLE_API_KEY
 
   try {
-    const response = await fetch(`https://api.iterable.com/api/subscriptions/${subscriptionGroup}/${subscriptionGroupId}/user/${email}`, {
-      method: "PATCH",
+    const response = await fetch('https://api.iterable.com/api/lists/subscribe', {
+      method: 'POST',
       headers: {
-        "api-key": ITERABLE_API_KEY || ''
-      }
+        'Content-Type': 'application/json',
+        'Api-Key': ITERABLE_API_KEY || ''
+      },
+      body: JSON.stringify({
+        listId: Number(listId),
+        subscribers: [{
+          email: email,
+        }]
+      })
     });
     const data = await response.json()
     return res.json({ message: 'Successfully subscribed.', status: 200, data })
